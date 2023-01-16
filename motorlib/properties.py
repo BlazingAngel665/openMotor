@@ -26,6 +26,12 @@ class Property():
         return '{} {}'.format(self.value, unit)
 
 
+class BoolProperty(Property):
+    """ A property that handles boolean values. It forces the value to be either True or False"""
+    def __init__(self, dispName):
+        super().__init__(dispName, None, bool)
+        self.value = False
+
 class FloatProperty(Property):
     """A property that handles floats. It forces the value to be in a certain range."""
     def __init__(self, dispName, unit, minValue, maxValue):
