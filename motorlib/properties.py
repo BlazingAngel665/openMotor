@@ -26,7 +26,7 @@ class Property():
         return '{} {}'.format(self.value, unit)
 
 
-class BoolProperty(Property):
+class BooleanProperty(Property):
     """ A property that handles boolean values. It forces the value to be either True or False"""
     def __init__(self, dispName):
         super().__init__(dispName, None, bool)
