@@ -16,6 +16,7 @@ class fileTypes(Enum):
     PREFERENCES = 1
     PROPELLANTS = 2
     MOTOR = 3
+    RECENTFILES = 4
 
 def futureVersion(verA, verB): # Returns true if a is newer than b
     major = verA[0] > verB[0]
@@ -162,7 +163,8 @@ migrations = {
         'to': (0, 6, 0),
         fileTypes.PREFERENCES: passthrough,
         fileTypes.PROPELLANTS: passthrough,
-        fileTypes.MOTOR: migrateMotor_0_5_0_to_0_6_0
+        fileTypes.MOTOR: migrateMotor_0_5_0_to_0_6_0,
+        fileTypes.RECENTFILES: passthrough
     },
     (0, 4, 0): {
         'to': (0, 5, 0),

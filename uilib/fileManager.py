@@ -28,7 +28,7 @@ class FileManager(QObject):
 
         self.newFile()
 
-        self.recentFiles = os.path.join(getConfigPath(), 'recentfiles.txt')
+        self.recentFiles = os.path.join(getConfigPath(), 'recentfiles.yaml')
 
     # Check if current motor is unsaved and start over from default motor. Called when the menu item is triggered.
     def newFile(self):
@@ -72,6 +72,7 @@ class FileManager(QObject):
         if fileName is not None:
             self.fileName = fileName
             self.save()
+            self.addRecentFile(fileName)
 
     # Checks for unsaved changes, asks for a filename, and loads the file
     def load(self, path=None):
@@ -222,6 +223,12 @@ class FileManager(QObject):
         return motor
 
     def createRecentlyOpenedMenu(self, recentlyOpenedMenu):
+        try:
+            self.recentFilesList = loadFile(self.recentFiles, fileTypes.RECENTFILES)
+        except FileNotFoundError:
+            logger.warn('Unable to load recent files, creating new file at {}'.format(self.recentFiles))
+            self.recentFilesList = []
+            saveFile(self.recentFiles, {"recentfileslist":self.recentFilesList}, fileTypes.RECENTFILES)
         self.recentlyOpenedMenu = recentlyOpenedMenu
         self.updateRecentlyOpenedMenu()
         
@@ -230,10 +237,10 @@ class FileManager(QObject):
         self.recentlyOpenedMenu.clear()
         self.recentlyOpenedFiles = []
         
-        with open(self.recentFiles, "r+") as recentFilesList:
-            lines = recentFilesList.readlines()
-            for line in lines:
-                recentFile = RecentFile(line[:-1], self)
+        self.recentFilesList = loadFile(self.recentFiles, fileTypes.RECENTFILES)["recentfileslist"]
+        if len(self.recentFilesList) >= 1:
+            for file in self.recentFilesList:
+                recentFile = RecentFile(file, self)
                 self.recentlyOpenedFiles.append(recentFile)
     
         if len(self.recentlyOpenedFiles) == 0:
@@ -247,17 +254,17 @@ class FileManager(QObject):
                 self.recentlyOpenedMenu.addAction(action)
                 
     def addRecentFile(self, filepath):
-        recentFilepaths = []
+        self.updateRecentlyOpenedMenu()
+        self.recentFilesList = []
         too_long = False
         for recentFile in self.recentlyOpenedFiles:
-                recentFilepaths.append(recentFile.filepath)
+                self.recentFilesList.append(recentFile.filepath)
                 
-        if len(recentFilepaths) > 5:
-            recentFilepaths = recentFilepaths[1:]
+        if len(self.recentFilesList) > 5:
+            self.recentFilesList = self.recentFilesList[1:]
                 
-        if filepath in recentFilepaths:
-            recentFilepaths.remove(filepath)
-        recentFilepaths.append(filepath)
-        with open(self.recentFiles, "w") as recentFilesList:
-            for i in recentFilepaths:
-                recentFilesList.write(i+"\n")
+        if filepath in self.recentFilesList:
+            self.recentFilesList.remove(filepath)
+        self.recentFilesList.append(filepath)
+
+        saveFile(self.recentFiles, {"recentfileslist":self.recentFilesList}, fileTypes.RECENTFILES)
